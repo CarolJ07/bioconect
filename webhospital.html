@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bioconect - Inicio de Sesión</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #002f4b, #005c97);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            display: none;
+        }
+        .login-container {
+            display: block;
+        }
+        h1 {
+            text-align: center;
+        }
+        input[type="text"], input[type="password"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #005c97;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #004080;
+        }
+        .area-buttons, .equipos-buttons, .marcas-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .area-buttons button, .equipos-buttons button, .marcas-buttons button {
+            flex: 1 1 30%;
+        }
+        .back-button {
+            margin-top: 10px;
+            background-color: #ff4b4b;
+        }
+        .back-button:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container login-container" id="login-container">
+        <h1>Bioconect</h1>
+        <input type="text" id="username" placeholder="Usuario">
+        <input type="password" id="password" placeholder="Contraseña">
+        <button onclick="iniciarSesion()">Iniciar Sesión</button>
+    </div>
+
+    <div class="container area-container" id="area-container">
+        <h1>Áreas del Hospital</h1>
+        <div class="area-buttons">
+            <button onclick="mostrarEquipos('Emergencia')">Emergencia</button>
+            <button onclick="mostrarEquipos('UCI')">UCI</button>
+            <button onclick="mostrarEquipos('Ginecología')">Ginecología</button>
+            <button onclick="mostrarEquipos('Diálisis')">Diálisis</button>
+            <!-- Añadir más áreas según sea necesario -->
+        </div>
+        <button class="back-button" onclick="volver('login-container')">Regresar</button>
+    </div>
+
+    <div class="container equipos-container" id="equipos-container">
+        <h1 id="equipos-titulo"></h1>
+        <div class="equipos-buttons">
+            <button onclick="mostrarMarcas('Equipo1')">Equipo1</button>
+            <button onclick="mostrarMarcas('Equipo2')">Equipo2</button>
+            <button onclick="mostrarMarcas('Equipo3')">Equipo3</button>
+            <!-- Añadir más equipos según sea necesario -->
+        </div>
+        <button class="back-button" onclick="volver('area-container')">Regresar</button>
+    </div>
+
+    <div class="container detalles-container" id="detalles-container">
+        <h1 id="detalles-titulo"></h1>
+        <div class="marcas-buttons">
+            <button onclick="mostrarDetalles('Marca1', '2020')">Marca1 - 2020</button>
+            <button onclick="mostrarDetalles('Marca2', '2021')">Marca2 - 2021</button>
+            <button onclick="mostrarDetalles('Marca3', '2022')">Marca3 - 2022</button>
+            <!-- Añadir más marcas y años según sea necesario -->
+        </div>
+        <div id="detalles-info" style="margin-top: 20px;">
+            <!-- Aquí se mostrarán los detalles del equipo seleccionado -->
+        </div>
+        <button class="back-button" onclick="volver('equipos-container')">Regresar</button>
+    </div>
+
+    <script>
+        let authenticated = false;
+
+        // Credenciales permitidas
+        const usuariosPermitidos = {
+            'usuario1': 'password1',
+            'usuario2': 'password2',
+            // Añadir más usuarios y contraseñas según sea necesario
+        };
+
+        function iniciarSesion() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (usuariosPermitidos[username] && usuariosPermitidos[username] === password) {
+                authenticated = true;
+                manejarRedireccion();
+            } else {
+                alert('Usuario o contraseña incorrectos');
+            }
+        }
+
+        function manejarRedireccion() {
+            const path = window.location.pathname.split('/');
+            if (authenticated) {
+                if (path[1] === 'areas') {
+                    if (path.length === 2) {
+                        mostrarSeccion('login-container', 'area-container');
+                    } else if (path.length === 3) {
+                        document.getElementById('equipos-titulo').textContent = path[2].charAt(0).toUpperCase() + path[2].slice(1);
+                        mostrarSeccion('area-container', 'equipos-container');
+                    } else if (path.length === 4) {
+                        document.getElementById('equipos-titulo').textContent = path[2].charAt(0).toUpperCase() + path[2].slice(1);
+                        document.getElementById('detalles-titulo').textContent = path[3].charAt(0).toUpperCase() + path[3].slice(1);
+                        mostrarSeccion('equipos-container', 'detalles-container');
+                    }
+                } else {
+                    mostrarSeccion('login-container', 'area-container');
+                }
+            } else {
+                mostrarSeccion('login-container', 'login-container');
+            }
+        }
+
+        function mostrarEquipos(area) {
+            document.getElementById('equipos-titulo').textContent = area;
+            mostrarSeccion('area-container', 'equipos-container');
+            history.pushState({page: 'equipos', area: area}, 'Equipos', '/areas/' + area.toLowerCase());
+        }
+
+        function mostrarMarcas(equipo) {
+            document.getElementById('detalles-titulo').textContent = equipo;
+            mostrarSeccion('equipos-container', 'detalles-container');
+            history.pushState({page: 'detalles', equipo: equipo}, 'Detalles', '/areas/' + document.getElementById('equipos-titulo').textContent.toLowerCase() + '/' + equipo.toLowerCase());
+        }
+
+        function mostrarDetalles(marca, año) {
+            const detallesInfo = `
+                <h2>${marca} - ${año}</h2>
+                <p>Marca: ${marca}</p>
+                <p>Año de Ingreso: ${año}</p>
+                <p>Número de Serie: XXXXXX</p>
+                <label>Foto del Equipo:</label><br>
+                <input type="file" accept="image/*"><br>
+                <label>Comentarios:</label><br>
+                <textarea rows="4" placeholder="Ingrese sus comentarios aquí"></textarea>
+            `;
+            document.getElementById('detalles-info').innerHTML = detallesInfo;
+        }
+
+        function mostrarSeccion(actual, siguiente) {
+            document.getElementById(actual).style.display = 'none';
+            document.getElementById(siguiente).style.display = 'block';
+        }
+
+        function volver(anterior) {
+            const secciones = document.querySelectorAll('.container');
+            secciones.forEach(seccion => seccion.style.display = 'none');
+            document.getElementById(anterior).style.display = 'block';
+            history.back();
+        }
+
+        window.onpopstate = function(event) {
+            if (event.state) {
+                switch (event.state.page) {
+                    case 'area':
+                        mostrarSeccion('login-container', 'area-container');
+                        break;
+                    case 'equipos':
+                        document.getElementById('equipos-titulo').textContent = event.state.area;
+                        mostrarSeccion('area-container', 'equipos-container');
+                        break;
+                    case 'detalles':
+                        document.getElementById('detalles-titulo').textContent = event.state.equipo;
+                        mostrarSeccion('equipos-container', 'detalles-container');
+                        break;
+                }
+            } else {
+                mostrarSeccion('area-container', 'login-container');
+            }
+        }
+
+        window.onload = manejarRedireccion;
+    </script>
+</body>
+</html>
